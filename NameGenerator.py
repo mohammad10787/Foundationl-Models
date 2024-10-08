@@ -45,6 +45,7 @@ print(Xtr.shape, Ytr.shape) # dataset
 emb_size = 10
 num_layer1 = 250
 dic_size = 27
+batch_size = 32
 
 g = torch.Generator().manual_seed(2147483647) # for reproducibility
 C = torch.randn((dic_size, emb_size), generator=g)
@@ -63,17 +64,18 @@ lri = []
 lossi = []
 stepi = []
 
+print(C[Xtr].shape)
+
 for i in range(200000):
 
   # minibatch construct
-  ix = torch.randint(0, Xtr.shape[0], (32,))
+  ix = torch.randint(0, Xtr.shape[0], (batch_size,))
 
   # forward pass
-  emb = C[Xtr[ix]]  # (32, 3, 10)
-  h = torch.tanh(emb.view(-1, emb_size * block_size) @ W1 + b1)  # (32, 200)
-  logits = h @ W2 + b2  # (32, 27)
+  emb = C[Xtr[ix]]
+  h = torch.tanh(emb.view(-1, emb_size * block_size) @ W1 + b1)
+  logits = h @ W2 + b2
   loss = F.cross_entropy(logits, Ytr[ix])
-  #print(loss.item())
 
   # backward pass
   for p in parameters:

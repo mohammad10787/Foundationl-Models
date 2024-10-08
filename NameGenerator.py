@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import random
 
-# this is a test
-
 words = open('data/names.txt', "r").read().splitlines()
 
 chars = sorted(list(set(''.join(words))))
@@ -66,7 +64,7 @@ stepi = []
 
 print(C[Xtr].shape)
 
-for i in range(200000):
+for i in range(200):
 
   # minibatch construct
   ix = torch.randint(0, Xtr.shape[0], (batch_size,))
@@ -113,35 +111,35 @@ logits = h @ W2 + b2
 loss = F.cross_entropy(logits, Yte)
 print(f"The test loss is: {loss}")
 
-plt.figure(figsize=(8,8))
-plt.scatter(C[:,0].data, C[:,1].data, s=200)
-for i in range(C.shape[0]):
-    plt.text(C[i,0].item(), C[i,1].item(), itos[i], ha="center", va="center", color='white')
-plt.grid('minor')
-plt.show()
-
-# training split, dev/validation split, test split
-# 80%, 10%, 10%
-
-context = [0] * block_size
-C[torch.tensor([context])].shape
-
-# sample from the model
-g = torch.Generator().manual_seed(2147483647 + 10)
-
-for _ in range(20):
-
-  out = []
-  context = [0] * block_size  # initialize with all ...
-  while True:
-    emb = C[torch.tensor([context])]  # (1,block_size,d)
-    h = torch.tanh(emb.view(1, -1) @ W1 + b1)
-    logits = h @ W2 + b2
-    probs = F.softmax(logits, dim=1)
-    ix = torch.multinomial(probs, num_samples=1, generator=g).item()
-    context = context[1:] + [ix]
-    out.append(ix)
-    if ix == 0:
-      break
-
-  print(''.join(itos[i] for i in out))
+# plt.figure(figsize=(8,8))
+# plt.scatter(C[:,0].data, C[:,1].data, s=200)
+# for i in range(C.shape[0]):
+#     plt.text(C[i,0].item(), C[i,1].item(), itos[i], ha="center", va="center", color='white')
+# plt.grid('minor')
+# plt.show()
+#
+# # training split, dev/validation split, test split
+# # 80%, 10%, 10%
+#
+# context = [0] * block_size
+# C[torch.tensor([context])].shape
+#
+# # sample from the model
+# g = torch.Generator().manual_seed(2147483647 + 10)
+#
+# for _ in range(20):
+#
+#   out = []
+#   context = [0] * block_size  # initialize with all ...
+#   while True:
+#     emb = C[torch.tensor([context])]  # (1,block_size,d)
+#     h = torch.tanh(emb.view(1, -1) @ W1 + b1)
+#     logits = h @ W2 + b2
+#     probs = F.softmax(logits, dim=1)
+#     ix = torch.multinomial(probs, num_samples=1, generator=g).item()
+#     context = context[1:] + [ix]
+#     out.append(ix)
+#     if ix == 0:
+#       break
+#
+#   print(''.join(itos[i] for i in out))

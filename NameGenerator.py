@@ -11,8 +11,12 @@ stoi = {s:i+1 for i, s in enumerate(chars)}
 stoi['.'] = 0
 itos = {i:s for s,i in stoi.items()}
 
-# build the dataset
-block_size = 3  #context length: how many characters do we take to predict the next one?
+# Hyperparameters
+block_size = 3  # context length
+emb_size = 10   # word embedding size
+num_layer1 = 250 # num of nerons in layer 1
+dic_size = 27 # dictionary size
+batch_size = 32 # batch size
 
 def build_dataset(words):
   X, Y = [], []
@@ -37,13 +41,6 @@ n2 = int(0.9*len(words))
 Xtr, Ytr = build_dataset(words[:n1])
 Xdev, Ydev = build_dataset(words[n1:n2])
 Xte, Yte = build_dataset(words[n2:])
-
-print(Xtr.shape, Ytr.shape) # dataset
-
-emb_size = 10
-num_layer1 = 250
-dic_size = 27
-batch_size = 32
 
 g = torch.Generator().manual_seed(2147483647) # for reproducibility
 C = torch.randn((dic_size, emb_size), generator=g)

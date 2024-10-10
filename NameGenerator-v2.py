@@ -5,7 +5,6 @@ import torch.nn.functional as F
 import random
 import torch.nn as nn
 from torch.optim import SGD
-from torch.utils.data import DataLoader
 
 words = open('data/names.txt', "r").read().splitlines()
 
@@ -53,7 +52,7 @@ model = nn.Sequential(
 )
 
 loss = nn.CrossEntropyLoss()
-opt = SGD(model.parameters(), lr = 0.05)
+opt = SGD(model.parameters(), lr = 0.01)
 
 lossi = []
 stepi = []
@@ -70,120 +69,46 @@ for i in range(200000):
   lossi.append(loss_value.item())
   stepi.append(i)
 
-print(lossi)
+#print(lossi)
 plt.plot(stepi, lossi)
 plt.show()
 
+emb = C[Xtr]
+emb = emb.view(-1, emb_size * block_size)
+logits = model(emb)
+loss = F.cross_entropy(logits, Ytr)
+print(f"The training loss is: {loss}")
+
+emb = C[Xdev]
+emb = emb.view(-1, emb_size * block_size)
+logits = model(emb)
+loss = F.cross_entropy(logits, Ydev)
+print(f"The dev loss is: {loss}")
+
+emb = C[Xte]
+emb = emb.view(-1, emb_size * block_size)
+logits = model(emb)
+loss = F.cross_entropy(logits, Yte)
+print(f"The test loss is: {loss}")
 
 
+# sample from the model
+g = torch.Generator().manual_seed(2147483647 + 10)
 
+for _ in range(20):
 
+  out = []
+  context = [0] * block_size  # initialize with all ...
+  while True:
+    emb = C[torch.tensor([context])]  # (1,block_size,d)
+    emb = emb.view(-1, emb_size * block_size)
+    logits = model(emb)
 
-# Parameters
-# g = torch.Generator().manual_seed(2147483647) # for reproducibility
-# C = torch.randn((dic_size, emb_size), generator=g)
-# W1 = torch.randn((emb_size * block_size, num_layer1), generator=g)
-# b1 = torch.randn(num_layer1, generator=g)
-# W2 = torch.randn((num_layer1, dic_size), generator=g)
-# b2 = torch.randn(dic_size, generator=g)
-# parameters = [C, W1, b1, W2, b2]
-#
-# sum(p.nelement() for p in parameters) # number of parameters in total
-#
-# for p in parameters:
-#   p.requires_grad = True
-#
-# lri = []
-#
-# stepi = []
+    probs = F.softmax(logits, dim=1)
+    ix = torch.multinomial(probs, num_samples=1, generator=g).item()
+    context = context[1:] + [ix]
+    out.append(ix)
+    if ix == 0:
+      break
 
-# print(Xtr.shape, C[Xtr].shape, C[Xtr].view(-1, 30).shape)
-#
-# for i in range(200):
-#
-#   # minibatch construct
-#   ix = torch.randint(0, Xtr.shape[0], (batch_size,))
-#   emb = C[Xtr[ix]]
-#   emb = emb.view(-1, emb_size * block_size)
-#   ypred = model(emb)
-#   loss_value = loss(ypred, y)
-#   loss_value,backward()
-#   opt.step()
-#   lossi.append(loss_value)
-#
-#   print(lossi)
-
-  # forward pass
-#   emb = C[Xtr[ix]]
-#   h = torch.tanh(emb.view(-1, emb_size * block_size) @ W1 + b1)
-#   logits = h @ W2 + b2
-#   loss = F.cross_entropy(logits, Ytr[ix])
-#
-#   # backward pass
-#   for p in parameters:
-#     p.grad = None
-#   loss.backward()
-#
-#   # update
-#   #lr = lrs[i]
-#   lr = 0.5 if i < 100000 else 0.05
-#   for p in parameters:
-#     p.data += -lr * p.grad
-#
-#   # track stats
-#   lri.append(lr)
-#   stepi.append(i)
-#   lossi.append(loss.log10().item())
-#
-# #print(loss.item())
-#
-# emb = C[Xtr] # (32, 3, 2)
-# h = torch.tanh(emb.view(-1, emb_size * block_size) @ W1 + b1) # (32, 100)
-# logits = h @ W2 + b2 # (32, 27)
-# loss = F.cross_entropy(logits, Ytr)
-# print(f"The training loss is: {loss}")
-#
-# emb = C[Xdev]
-# h = torch.tanh(emb.view(-1, emb_size * block_size) @ W1 + b1) # (32, 100)
-# logits = h @ W2 + b2
-# loss = F.cross_entropy(logits, Ydev)
-# print(f"The dev loss is: {loss}")
-#
-# emb = C[Xte]
-# h = torch.tanh(emb.view(-1, emb_size * block_size) @ W1 + b1) # (32, 100)
-# logits = h @ W2 + b2
-# loss = F.cross_entropy(logits, Yte)
-# print(f"The test loss is: {loss}")
-
-# plt.figure(figsize=(8,8))
-# plt.scatter(C[:,0].data, C[:,1].data, s=200)
-# for i in range(C.shape[0]):
-#     plt.text(C[i,0].item(), C[i,1].item(), itos[i], ha="center", va="center", color='white')
-# plt.grid('minor')
-# plt.show()
-#
-# # training split, dev/validation split, test split
-# # 80%, 10%, 10%
-#
-# context = [0] * block_size
-# C[torch.tensor([context])].shape
-#
-# # sample from the model
-# g = torch.Generator().manual_seed(2147483647 + 10)
-#
-# for _ in range(20):
-#
-#   out = []
-#   context = [0] * block_size  # initialize with all ...
-#   while True:
-#     emb = C[torch.tensor([context])]  # (1,block_size,d)
-#     h = torch.tanh(emb.view(1, -1) @ W1 + b1)
-#     logits = h @ W2 + b2
-#     probs = F.softmax(logits, dim=1)
-#     ix = torch.multinomial(probs, num_samples=1, generator=g).item()
-#     context = context[1:] + [ix]
-#     out.append(ix)
-#     if ix == 0:
-#       break
-#
-#   print(''.join(itos[i] for i in out))
+  print(''.join(itos[i] for i in out))

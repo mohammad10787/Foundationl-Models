@@ -56,7 +56,7 @@ batch_size = 32 # batch size
 g = torch.Generator().manual_seed(2147483647) # for reproducibility
 C  = torch.randn((vocab_size, n_embd),            generator=g)
 W1 = torch.randn((n_embd * block_size, n_hidden), generator=g) * (5/3)/((n_embd * block_size)**0.5) #* 0.2
-b1 = torch.randn(n_hidden,                        generator=g) * 0.01
+# b1 = torch.randn(n_hidden,                        generator=g) * 0.01
 W2 = torch.randn((n_hidden, vocab_size),          generator=g) * 0.01
 b2 = torch.randn(vocab_size,                      generator=g) * 0
 

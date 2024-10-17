@@ -151,7 +151,7 @@ for _ in range(20):
   context = [0] * block_size  # initialize with all ...
   while True:
     emb = C[torch.tensor([context])]  # (1,block_size,d)
-    h = torch.tanh(emb.view(1, -1) @ W1 + b1)
+    h = torch.tanh(emb.view(1, -1) @ W1 ) #+ b1)
     logits = h @ W2 + b2
     probs = F.softmax(logits, dim=1)
     ix = torch.multinomial(probs, num_samples=1, generator=g).item()
